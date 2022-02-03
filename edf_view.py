@@ -74,7 +74,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.open_button.clicked.connect(self.open_clicked)
 
-        self.label.setText('By Marie Curie fellow Trygve M. Ræder for use in the group of Hugh Simons at DTU. Use at own risk. MIT lisence. https://github.com/trygvrad/edf_viewer')
+        self.label.setText(' By Marie Curie fellow Trygve M. R'+chr(int('00E6', 16))+'der for use in the group of Hugh Simons at DTU. Use at own risk. MIT lisence. https://github.com/trygvrad/edf_viewer')
         #self.save_image_button.clicked.connect(self.save_clicked)
 
     def open_clicked(self,event):
@@ -82,7 +82,7 @@ class MainWindow(QtWidgets.QMainWindow):
         print(file)
         try:
             self.new_file(file)
-            self.label.setText(r'By Marie Curie fellow Trygve M. Ræder for use in the group of Hugh Simons at DTU. Use at own risk. MIT lisence. https://github.com/trygvrad/edf_viewer')
+            self.label.setText(' By Marie Curie fellow Trygve M. R'+chr(int('00E6', 16))+'der for use in the group of Hugh Simons at DTU. Use at own risk. MIT lisence. https://github.com/trygvrad/edf_viewer')
         except Exception as e:
             self.label.setText(str(e))
             self.label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
