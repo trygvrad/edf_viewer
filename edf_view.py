@@ -5,7 +5,6 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtWidgets import  QTreeWidgetItem
 import pyqtgraph
 import os
-import numpy as np
 import sys
 import numpy as np
 import threading
@@ -17,7 +16,22 @@ class MainWindow(QtWidgets.QMainWindow):
         pyqtgraph.setConfigOption('background', 'w')
         super(MainWindow, self).__init__(*args, **kwargs)
         #Load the UI Page
-        uic.loadUi(str(pathlib.Path(__file__).resolve().parent)+'/edf_view.ui', self)
+
+
+        if getattr(sys, 'frozen', False):
+            application_path = os.path.dirname(sys.executable)
+        elif __file__:
+            application_path = os.path.dirname(__file__)
+
+        i = 0
+        while not os.path.exists(str(application_path) + '/edf_view.ui'):
+            application_path = application_path + '/..'
+            i+=1
+            if i>10:
+                break
+        path = str(application_path) + '/edf_view.ui'
+
+        uic.loadUi(path, self)
 
         self.setObjectName("MainWindow")
 
@@ -31,7 +45,7 @@ class MainWindow(QtWidgets.QMainWindow):
         ]
         # color maps
         cmap = pyqtgraph.ColorMap(pos=np.linspace(0.0, 1.0, 4), color=colors)
-        cmap = pyqtgraph.colormap.get('CET-L9')
+        #cmap = pyqtgraph.colormap.get('CET-L9')
         cmap = pyqtgraph.colormap.getFromMatplotlib('viridis')
 
         self.image_show.setColorMap(cmap)
@@ -57,6 +71,24 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(sys.argv)>1:
             file = sys.argv[1]
             self.new_file(file)
+
+        self.open_button.clicked.connect(self.open_clicked)
+
+        self.label.setText('By Marie Curie fellow Trygve M. Ræder for use in the group of Hugh Simons at DTU. Use at own risk. MIT lisence. https://github.com/trygvrad/edf_viewer')
+        #self.save_image_button.clicked.connect(self.save_clicked)
+
+    def open_clicked(self,event):
+        file = self.path.text().replace('\\\\','\\')
+        print(file)
+        try:
+            self.new_file(file)
+            self.label.setText(r'By Marie Curie fellow Trygve M. Ræder for use in the group of Hugh Simons at DTU. Use at own risk. MIT lisence. https://github.com/trygvrad/edf_viewer')
+        except Exception as e:
+            self.label.setText(str(e))
+            self.label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
+            print(e)
+    #def save_clicked(self,event):
+    #    None
 
 
     def do_drop_event(self, event):
