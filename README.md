@@ -8,3 +8,5 @@ Using pyQt5, pyqtgraph and fabio
 a .edf file can be provided as an input argument such that you may associate \*.edf files with edf_view.py
 
 ![](example.png?raw=true)
+
+compiled with pyinstaller.exe --windowed --icon=iconOri.ico --onefile loader.py
