@@ -24,12 +24,15 @@ class MainWindow(QtWidgets.QMainWindow):
             application_path = os.path.dirname(__file__)
 
         i = 0
-        while not os.path.exists(str(application_path) + '/edf_view.ui'):
-            application_path = application_path + '/..'
-            i+=1
-            if i>10:
-                break
-        path = str(application_path) + '/edf_view.ui'
+        if os.path.exists('edf_view.ui'):
+            path = 'edf_view.ui'
+        else:
+            while not os.path.exists(str(application_path) + '/edf_view.ui'):
+                application_path = application_path + '/..'
+                i+=1
+                if i>10:
+                    break
+            path = str(application_path) + '/edf_view.ui'
 
         uic.loadUi(path, self)
 
@@ -52,7 +55,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.image_show.ui.roiBtn.hide()
         self.image_show.ui.menuBtn.hide()
-        #self.dropEvent = self.do_drop_event
+        # hide colorbar
+        self.image_show.getHistogramWidget().gradient.hide()
+        #self.image_show.ui.histogram.layout.setSpacing(0)
 
         def dragEnterEvent(ev):
             ev.accept()
@@ -76,6 +81,41 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.label.setText(' By Marie Curie fellow Trygve M. R'+chr(int('00E6', 16))+'der for use in the group of Hugh Simons at DTU. Use at own risk. MIT lisence. https://github.com/trygvrad/edf_viewer')
         #self.save_image_button.clicked.connect(self.save_clicked)
+        if 1: # modify the histogram
+            histogram_width = 50
+            self.image_show.ui.gridLayout.setColumnMinimumWidth(3,-(116-histogram_width)) # hack with negative width to get correct placement of histogram with a low width
+            self.image_show.ui.histogram.vb.setMaximumWidth(histogram_width)
+            #print(self.image_show.ui.histogram.children()[3].sceneRect())
+            #print(self.image_show.ui.histogram.children()[3].setSceneRect(-4.0,-14.0,10.0,60.0))
+            #self.image_show.ui.histogram.children()[0].setFixedWidth(histogram_width)
+            #self.image_show.ui.histogram.children()[1].setFixedWidth(histogram_width)
+            #self.image_show.ui.histogram.children()[2].setFixedWidth(histogram_width)
+            #self.image_show.ui.histogram.children()[3].hide()
+            #self.image_show.ui.histogram.vb.setMinimumWidth(10)
+            #print(self.image_show.ui.gridLayout.columnMinimumWidth(0))
+            #print(self.image_show.ui.gridLayout.columnMinimumWidth(1))
+            #print(self.image_show.ui.gridLayout.columnMinimumWidth(2))
+            #self.image_show.ui.gridLayout.setColumnMinimumWidth(1,1)
+            #self.image_show.ui.gridLayout.setColumnMinimumWidth(2,1)
+            #self.image_show.ui.histogram.axis.hide()
+            self.image_show.ui.histogram.axis.setWidth(0)
+            self.image_show.ui.histogram.axis.setStyle(tickLength = -histogram_width)
+            self.image_show.ui.histogram.axis.setStyle(tickTextOffset = -histogram_width+10)
+            self.image_show.ui.histogram.axis.setStyle(tickTextOffset = -histogram_width+10)
+
+            # self.image_show.ui.histogram.vb.setLogMode('x',True) # should be possible in pyqtgraph >= 0.12.4
+            self.image_show.ui.histogram.axis.setPen(fn.mkPen((0, 0, 0, 50)))
+            self.image_show.ui.histogram.axis.setTextPen(fn.mkPen((98, 98, 98, 255)))
+
+            self.image_show.ui.histogram.region.setBrush(fn.mkBrush((0, 0, 0, 100)))
+            self.image_show.ui.histogram.region.setHoverBrush(fn.mkBrush((100, 100, 100, 100)))
+            self.image_show.ui.histogram.region.lines[0].setPen(fn.mkPen((0, 90, 150, 255)))
+            self.image_show.ui.histogram.region.lines[1].setPen(fn.mkPen((0, 90, 150, 255)))
+
+            self.image_show.ui.histogram.plots[0].setBrush((0, 0, 0))
+            #self.image_show.ui.histogram.axis.setStyle(tickTextOffset = 3)
+
+
 
     def open_clicked(self,event):
         file = self.path.text().replace('\\\\','\\')
@@ -104,24 +144,28 @@ class MainWindow(QtWidgets.QMainWindow):
                     levels = [np.percentile(edf.data, 0.1),np.percentile(edf.data, 99.9)],
                     axisOrder = 'row-major')
             self.header_tree.clear()
+            try:
+                motors = QTreeWidgetItem([ 'motors', '' ])
+                self.header_tree.addTopLevelItem(motors)
+                motor_names = edf.header['motor_mne']
+                motor_pos = edf.header['motor_pos']
+                for key, val in zip(motor_names.split(' '),motor_pos.split(' ')):
+                    item = QTreeWidgetItem([ key, val ])
+                    motors.addChild(item)
+                    motors.setExpanded(True)
+            except:
+                None
+            try:
+                other = QTreeWidgetItem([ 'other', '' ])
+                self.header_tree.addTopLevelItem(other)
+                for key in edf.header.keys():
+                    #if not 'motor' in key:
+                    item = QTreeWidgetItem([ key, str(edf.header[key]) ])
+                    other.addChild(item)
 
-            motors = QTreeWidgetItem([ 'motors', '' ])
-            self.header_tree.addTopLevelItem(motors)
-            motor_names = edf.header['motor_mne']
-            motor_pos = edf.header['motor_pos']
-            for key, val in zip(motor_names.split(' '),motor_pos.split(' ')):
-                item = QTreeWidgetItem([ key, val ])
-                motors.addChild(item)
-
-            other = QTreeWidgetItem([ 'other', '' ])
-            self.header_tree.addTopLevelItem(other)
-            for key in edf.header.keys():
-                #if not 'motor' in key:
-                item = QTreeWidgetItem([ key, str(edf.header[key]) ])
-                other.addChild(item)
-
-            motors.setExpanded(True)
-            other.setExpanded(True)
+                other.setExpanded(True)
+            except:
+                None
 
 
 import queue
@@ -164,8 +208,35 @@ class RimtExecutor():
                 print(e)
         QtCore.QTimer.singleShot(10, self.execute)
 
+from pyqtgraph import Point, fn
+def paint(self, p, *args):
+    '''
+    this is a version of pyqtgraph.graphicsItems.HistogramLUTItem.HistogramLUTItem
+    that when called does not add the diagonal lines connecting the colorbar to the histogram
+    overload using "setattr(pyqtgraph.graphicsItems.HistogramLUTItem.HistogramLUTItem,'paint', paint)"
+    before the ui is loaded
+    '''
+    if self.levelMode != 'mono':
+        return
+    pen = self.region.lines[0].pen
+    rgn = self.getLevels()
+    p1 = self.vb.mapFromViewToItem(self, Point(self.vb.viewRect().center().x(), rgn[0]))
+    p2 = self.vb.mapFromViewToItem(self, Point(self.vb.viewRect().center().x(), rgn[1]))
+    gradRect = self.gradient.mapRectToParent(self.gradient.gradRect.rect())
+    p.setRenderHint(QtGui.QPainter.Antialiasing)
+    '''
+    for pen in [fn.mkPen((0, 0, 0, 100), width=3), pen]:
+        p.setPen(pen)
+        p.drawLine(p1 + Point(0, 5), gradRect.bottomLeft())
+        p.drawLine(p2 - Point(0, 5), gradRect.topLeft())
+        p.drawLine(gradRect.topLeft(), gradRect.topRight())
+        p.drawLine(gradRect.bottomLeft(), gradRect.bottomRight())
+    '''
 
 if __name__ == "__main__":
+    # remoce lines to colorbar from plot
+    setattr(pyqtgraph.graphicsItems.HistogramLUTItem.HistogramLUTItem,'paint', paint)
+    #
     app = QtWidgets.QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()
