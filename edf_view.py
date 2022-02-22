@@ -82,39 +82,42 @@ class MainWindow(QtWidgets.QMainWindow):
         self.label.setText(' By Marie Curie fellow Trygve M. R'+chr(int('00E6', 16))+'der for use in the group of Hugh Simons at DTU. Use at own risk. MIT lisence. https://github.com/trygvrad/edf_viewer')
         #self.save_image_button.clicked.connect(self.save_clicked)
         if 1: # modify the histogram
-            histogram_width = 50
-            self.image_show.ui.gridLayout.setColumnMinimumWidth(3,-(116-histogram_width)) # hack with negative width to get correct placement of histogram with a low width
-            self.image_show.ui.histogram.vb.setMaximumWidth(histogram_width)
-            #print(self.image_show.ui.histogram.children()[3].sceneRect())
-            #print(self.image_show.ui.histogram.children()[3].setSceneRect(-4.0,-14.0,10.0,60.0))
-            #self.image_show.ui.histogram.children()[0].setFixedWidth(histogram_width)
-            #self.image_show.ui.histogram.children()[1].setFixedWidth(histogram_width)
-            #self.image_show.ui.histogram.children()[2].setFixedWidth(histogram_width)
-            #self.image_show.ui.histogram.children()[3].hide()
-            #self.image_show.ui.histogram.vb.setMinimumWidth(10)
-            #print(self.image_show.ui.gridLayout.columnMinimumWidth(0))
-            #print(self.image_show.ui.gridLayout.columnMinimumWidth(1))
-            #print(self.image_show.ui.gridLayout.columnMinimumWidth(2))
-            #self.image_show.ui.gridLayout.setColumnMinimumWidth(1,1)
-            #self.image_show.ui.gridLayout.setColumnMinimumWidth(2,1)
-            #self.image_show.ui.histogram.axis.hide()
-            self.image_show.ui.histogram.axis.setWidth(0)
-            self.image_show.ui.histogram.axis.setStyle(tickLength = -histogram_width)
-            self.image_show.ui.histogram.axis.setStyle(tickTextOffset = -histogram_width+10)
-            self.image_show.ui.histogram.axis.setStyle(tickTextOffset = -histogram_width+10)
+            try:
+                pyqtgraph.fn # <--- old versions of pyqtgraph will fail on this line
+                histogram_width = 50
+                self.image_show.ui.gridLayout.setColumnMinimumWidth(3,-(116-histogram_width)) # hack with negative width to get correct placement of histogram with a low width
+                self.image_show.ui.histogram.vb.setMaximumWidth(histogram_width)
+                #print(self.image_show.ui.histogram.children()[3].sceneRect())
+                #print(self.image_show.ui.histogram.children()[3].setSceneRect(-4.0,-14.0,10.0,60.0))
+                #self.image_show.ui.histogram.children()[0].setFixedWidth(histogram_width)
+                #self.image_show.ui.histogram.children()[1].setFixedWidth(histogram_width)
+                #self.image_show.ui.histogram.children()[2].setFixedWidth(histogram_width)
+                #self.image_show.ui.histogram.children()[3].hide()
+                #self.image_show.ui.histogram.vb.setMinimumWidth(10)
+                #print(self.image_show.ui.gridLayout.columnMinimumWidth(0))
+                #print(self.image_show.ui.gridLayout.columnMinimumWidth(1))
+                #print(self.image_show.ui.gridLayout.columnMinimumWidth(2))
+                #self.image_show.ui.gridLayout.setColumnMinimumWidth(1,1)
+                #self.image_show.ui.gridLayout.setColumnMinimumWidth(2,1)
+                #self.image_show.ui.histogram.axis.hide()
+                self.image_show.ui.histogram.axis.setWidth(0)
+                self.image_show.ui.histogram.axis.setStyle(tickLength = -histogram_width)
+                self.image_show.ui.histogram.axis.setStyle(tickTextOffset = -histogram_width+10)
+                self.image_show.ui.histogram.axis.setStyle(tickTextOffset = -histogram_width+10)
 
-            # self.image_show.ui.histogram.vb.setLogMode('x',True) # should be possible in pyqtgraph >= 0.12.4
-            self.image_show.ui.histogram.axis.setPen(fn.mkPen((0, 0, 0, 50)))
-            self.image_show.ui.histogram.axis.setTextPen(fn.mkPen((98, 98, 98, 255)))
+                # self.image_show.ui.histogram.vb.setLogMode('x',True) # should be possible in pyqtgraph >= 0.12.4
+                self.image_show.ui.histogram.axis.setPen(pyqtgraph.fn.mkPen((0, 0, 0, 50)))
+                self.image_show.ui.histogram.axis.setTextPen(pyqtgraph.fn.mkPen((98, 98, 98, 255)))
 
-            self.image_show.ui.histogram.region.setBrush(fn.mkBrush((0, 0, 0, 100)))
-            self.image_show.ui.histogram.region.setHoverBrush(fn.mkBrush((100, 100, 100, 100)))
-            self.image_show.ui.histogram.region.lines[0].setPen(fn.mkPen((0, 90, 150, 255)))
-            self.image_show.ui.histogram.region.lines[1].setPen(fn.mkPen((0, 90, 150, 255)))
+                self.image_show.ui.histogram.region.setBrush(pyqtgraph.fn.mkBrush((0, 0, 0, 100)))
+                self.image_show.ui.histogram.region.setHoverBrush(pyqtgraph.fn.mkBrush((100, 100, 100, 100)))
+                self.image_show.ui.histogram.region.lines[0].setPen(pyqtgraph.fn.mkPen((0, 90, 150, 255)))
+                self.image_show.ui.histogram.region.lines[1].setPen(pyqtgraph.fn.mkPen((0, 90, 150, 255)))
 
-            self.image_show.ui.histogram.plots[0].setBrush((0, 0, 0))
-            #self.image_show.ui.histogram.axis.setStyle(tickTextOffset = 3)
-
+                self.image_show.ui.histogram.plots[0].setBrush((0, 0, 0))
+                #self.image_show.ui.histogram.axis.setStyle(tickTextOffset = 3)
+            except:
+                None
 
 
     def open_clicked(self,event):
@@ -208,7 +211,7 @@ class RimtExecutor():
                 print(e)
         QtCore.QTimer.singleShot(10, self.execute)
 
-from pyqtgraph import Point, fn
+from pyqtgraph import Point
 def paint(self, p, *args):
     '''
     this is a version of pyqtgraph.graphicsItems.HistogramLUTItem.HistogramLUTItem
