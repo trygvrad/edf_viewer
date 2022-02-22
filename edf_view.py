@@ -56,7 +56,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.image_show.ui.roiBtn.hide()
         self.image_show.ui.menuBtn.hide()
         # hide colorbar
-        self.image_show.getHistogramWidget().gradient.hide()
+        #self.image_show.getHistogramWidget().gradient.hide()
         #self.image_show.ui.histogram.layout.setSpacing(0)
 
         def dragEnterEvent(ev):
@@ -85,7 +85,8 @@ class MainWindow(QtWidgets.QMainWindow):
             try:
                 pyqtgraph.fn # <--- old versions of pyqtgraph will fail on this line
                 histogram_width = 50
-                self.image_show.ui.gridLayout.setColumnMinimumWidth(3,-(116-histogram_width)) # hack with negative width to get correct placement of histogram with a low width
+                self.image_show.ui.gridLayout.setColumnMinimumWidth(3,-(106-histogram_width)) # hack with negative width to get correct placement of histogram with a low width
+                # 116 to also remove colorbar
                 self.image_show.ui.histogram.vb.setMaximumWidth(histogram_width)
                 #print(self.image_show.ui.histogram.children()[3].sceneRect())
                 #print(self.image_show.ui.histogram.children()[3].setSceneRect(-4.0,-14.0,10.0,60.0))
