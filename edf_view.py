@@ -149,6 +149,17 @@ class MainWindow(QtWidgets.QMainWindow):
                     axisOrder = 'row-major')
             self.header_tree.clear()
             try:
+                counters = QTreeWidgetItem([ 'counters', '' ])
+                self.header_tree.addTopLevelItem(counters)
+                counter_names = edf.header['counter_mne']
+                counter_pos = edf.header['counter_pos']
+                for key, val in zip(counter_names.split(' '),counter_pos.split(' ')):
+                    item = QTreeWidgetItem([ key, val ])
+                    counters.addChild(item)
+                    counters.setExpanded(True)
+            except Exception as e:
+                None
+            try:
                 motors = QTreeWidgetItem([ 'motors', '' ])
                 self.header_tree.addTopLevelItem(motors)
                 motor_names = edf.header['motor_mne']
