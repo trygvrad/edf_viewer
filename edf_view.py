@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-
-
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
-from PyQt5.QtWidgets import  QTreeWidgetItem
+from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2.QtWidgets import  QTreeWidgetItem
 import pyqtgraph
 import os
 import sys
@@ -10,6 +8,25 @@ import numpy as np
 import threading
 import fabio
 import pathlib
+from PySide2.QtUiTools import QUiLoader
+
+QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
+class UiLoader(QUiLoader):
+    def __init__(self, base_instance):
+        QUiLoader.__init__(self, base_instance)
+        self.base_instance = base_instance
+
+    def createWidget(self, class_name, parent=None, name=''):
+        if parent is None and self.base_instance:
+            return self.base_instance
+        elif class_name == "ImageView":
+            return pyqtgraph.ImageView(parent=parent)
+        else:
+            # create a new widget for child widgets
+            widget = QUiLoader.createWidget(self, class_name, parent, name)
+            if self.base_instance:
+                setattr(self.base_instance, name, widget)
+            return widget
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -34,7 +51,8 @@ class MainWindow(QtWidgets.QMainWindow):
                     break
             path = str(application_path) + '/edf_view.ui'
 
-        uic.loadUi(path, self)
+        loader = UiLoader(self)
+        widget = loader.load(path)
 
         self.setObjectName("MainWindow")
 
@@ -52,6 +70,7 @@ class MainWindow(QtWidgets.QMainWindow):
         cmap = pyqtgraph.colormap.getFromMatplotlib('viridis')
 
         self.image_show.setColorMap(cmap)
+        self.image_show.ui.histogram.gradient.showTicks(False)
 
         self.image_show.ui.roiBtn.hide()
         self.image_show.ui.menuBtn.hide()
@@ -81,45 +100,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.label.setText(' By Marie Curie fellow Trygve M. R'+chr(int('00E6', 16))+'der for use in the group of Hugh Simons at DTU. Use at own risk. MIT lisence. https://github.com/trygvrad/edf_viewer')
         #self.save_image_button.clicked.connect(self.save_clicked)
-        if 1: # modify the histogram
-            try:
-                pyqtgraph.fn # <--- old versions of pyqtgraph will fail on this line
-                histogram_width = 50
-                self.image_show.ui.gridLayout.setColumnMinimumWidth(3,-(106-histogram_width)) # hack with negative width to get correct placement of histogram with a low width
-                # 116 to also remove colorbar
-                self.image_show.ui.histogram.vb.setMaximumWidth(histogram_width)
-                #print(self.image_show.ui.histogram.children()[3].sceneRect())
-                #print(self.image_show.ui.histogram.children()[3].setSceneRect(-4.0,-14.0,10.0,60.0))
-                #self.image_show.ui.histogram.children()[0].setFixedWidth(histogram_width)
-                #self.image_show.ui.histogram.children()[1].setFixedWidth(histogram_width)
-                #self.image_show.ui.histogram.children()[2].setFixedWidth(histogram_width)
-                #self.image_show.ui.histogram.children()[3].hide()
-                #self.image_show.ui.histogram.vb.setMinimumWidth(10)
-                #print(self.image_show.ui.gridLayout.columnMinimumWidth(0))
-                #print(self.image_show.ui.gridLayout.columnMinimumWidth(1))
-                #print(self.image_show.ui.gridLayout.columnMinimumWidth(2))
-                #self.image_show.ui.gridLayout.setColumnMinimumWidth(1,1)
-                #self.image_show.ui.gridLayout.setColumnMinimumWidth(2,1)
-                #self.image_show.ui.histogram.axis.hide()
-                self.image_show.ui.histogram.axis.setWidth(0)
-                self.image_show.ui.histogram.axis.setStyle(tickLength = -histogram_width)
-                self.image_show.ui.histogram.axis.setStyle(tickTextOffset = -histogram_width+10)
-                self.image_show.ui.histogram.axis.setStyle(tickTextOffset = -histogram_width+10)
-
-                # self.image_show.ui.histogram.vb.setLogMode('x',True) # should be possible in pyqtgraph >= 0.12.4
-                self.image_show.ui.histogram.axis.setPen(pyqtgraph.fn.mkPen((0, 0, 0, 50)))
-                self.image_show.ui.histogram.axis.setTextPen(pyqtgraph.fn.mkPen((98, 98, 98, 255)))
-
-                self.image_show.ui.histogram.region.setBrush(pyqtgraph.fn.mkBrush((0, 0, 0, 100)))
-                self.image_show.ui.histogram.region.setHoverBrush(pyqtgraph.fn.mkBrush((100, 100, 100, 100)))
-                self.image_show.ui.histogram.region.lines[0].setPen(pyqtgraph.fn.mkPen((0, 90, 150, 255)))
-                self.image_show.ui.histogram.region.lines[1].setPen(pyqtgraph.fn.mkPen((0, 90, 150, 255)))
-
-                self.image_show.ui.histogram.plots[0].setBrush((0, 0, 0))
-                #self.image_show.ui.histogram.axis.setStyle(tickTextOffset = 3)
-            except:
-                None
-
 
     def open_clicked(self,event):
         file = self.path.text().replace('\\\\','\\')
@@ -189,10 +169,10 @@ class rimt():
     def __init__(self, send_queue, return_queue):
         self.send_queue = send_queue
         self.return_queue = return_queue
-        self.main_thread = threading.currentThread()
+        self.main_thread = threading.current_thread()
 
     def rimt(self, function, *args, **kwargs):
-        if threading.currentThread() == self.main_thread:
+        if threading.current_thread() == self.main_thread:
             return function(*args, **kwargs)
         else:
             self.send_queue.put(functools.partial(function, *args, **kwargs))

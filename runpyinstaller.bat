@@ -1,0 +1,2 @@
+python3 -m PyInstaller --hidden-import PySide2.QtUiTools --exclude-module scipy  --exclude-module tkinter --exclude-module pyqt5 --icon=iconOri.ico --log-level=DEBUG --onefile  --windowed loader.py
+%Pause 
